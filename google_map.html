@@ -44,20 +44,8 @@
 		  // Add the EE layer to the map.
 		  map.overlayMapTypes.push(mapType);
 
-
-
-
-        // var mapOptions = {
-        //   center: { lat: -34.397, lng: 150.644},
-        //   zoom: 8
-        // };
-        // var map = new google.maps.Map(document.getElementById('map-canvas'),
-        //     mapOptions);
-
-
-
       }
-      //google.maps.event.addDomListener(window, 'load', initialize({{ mapid }},{{ token }}));
+
     </script>
   </head>
   <body>
@@ -74,7 +62,7 @@
     <script>
           /**
        * Here we get the mapid and token for the map tiles that were generated
-       * by Earth Engine using the Python script server.py and injected using
+       * by Earth Engine using the Python and injected using
        * the Jinja2 templating engine.
        */
       initialize('{{ mapid }}', '{{ token }}');
