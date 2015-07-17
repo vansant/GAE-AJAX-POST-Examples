@@ -10,12 +10,12 @@
       src="https://maps.googleapis.com/maps/api/js?">
     </script>
     <script type="text/javascript">
-      function initialize() {
+      function initialize(mapId, token) {
 		  // The Google Maps API calls getTileUrl() when it tries to display a map
 		  // tile.  This is a good place to swap in the MapID and token we got from
 		  // the Python script. The other values describe other properties of the
 		  // custom map type.
-		  function getMapTiles(mapId, token){
+
 		  	var eeMapOptions = {
 		    getTileUrl: function(tile, zoom) {
 		      var baseUrl = 'https://earthengine.googleapis.com/map';
@@ -44,21 +44,41 @@
 		  // Add the EE layer to the map.
 		  map.overlayMapTypes.push(mapType);
 
-		  }
 
-        var mapOptions = {
-          center: { lat: -34.397, lng: 150.644},
-          zoom: 8
-        };
-        var map = new google.maps.Map(document.getElementById('map-canvas'),
-            mapOptions);
+
+
+        // var mapOptions = {
+        //   center: { lat: -34.397, lng: 150.644},
+        //   zoom: 8
+        // };
+        // var map = new google.maps.Map(document.getElementById('map-canvas'),
+        //     mapOptions);
+
+
+
       }
-      google.maps.event.addDomListener(window, 'load', initialize);
+      //google.maps.event.addDomListener(window, 'load', initialize({{ mapid }},{{ token }}));
     </script>
   </head>
   <body>
-    {{ body_content }}
-    <div id="map-canvas"></div>
+  	<div>
+  		{{ body_content }}
+  	</div>
+  	<div>mapid: {{ mapid }}</div>
+  	<div>token: {{ token }}</div>
+    
+    <!-- The element into which we render the Google Map. -->
+    <div id="map" style="width: 640px; height: 480px;"></div>
+
+    <!-- Boot our application once the body loads. -->
+    <script>
+          /**
+       * Here we get the mapid and token for the map tiles that were generated
+       * by Earth Engine using the Python script server.py and injected using
+       * the Jinja2 templating engine.
+       */
+      initialize('{{ mapid }}', '{{ token }}');
+    </script>
   </body>
 </html>
 {% endautoescape %}

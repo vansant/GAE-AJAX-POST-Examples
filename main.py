@@ -115,10 +115,17 @@ class AJAXExamplePage(webapp2.RequestHandler):
 class GoogleMapPage(webapp2.RequestHandler):
     def get(self):
 
+        # Authenticate with Earth Engine
         ee.Initialize(config.EE_CREDENTIALS)
+
+        # Get mapid
+        mapid = ee.Image('srtm90_v4').getMapId({'min': 0, 'max': 1000})
         template_values = {
             "page_title": "Google Maps Example",
-            "body_content":"Google Map Below"}
+            "body_content":"Google Map Below",
+            'mapid': mapid['mapid'],
+            'token': mapid['token']
+            }
         template = JINJA_ENVIRONMENT.get_template('google_map.html')
         self.response.write(template.render(template_values))
 
