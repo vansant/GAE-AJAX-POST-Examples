@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <title>{{ page_title}}}</title>
+    <style type="text/css">
+      html, body, #map-canvas { height: 500px; margin: 0; padding: 0;}
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?">
+    </script>
+    <script type="text/javascript">
+      function initialize() {
+		  // The Google Maps API calls getTileUrl() when it tries to display a map
+		  // tile.  This is a good place to swap in the MapID and token we got from
+		  // the Python script. The other values describe other properties of the
+		  // custom map type.
+		  function getMapTiles(mapId, token){
+		  	var eeMapOptions = {
+		    getTileUrl: function(tile, zoom) {
+		      var baseUrl = 'https://earthengine.googleapis.com/map';
+		      var url = [baseUrl, mapId, zoom, tile.x, tile.y].join('/');
+		      url += '?token=' + token;
+		      return url;
+		    },
+		    tileSize: new google.maps.Size(256, 256)
+		  };
+
+		  // Create the map type.
+		  var mapType = new google.maps.ImageMapType(eeMapOptions);
+
+		  var myLatLng = new google.maps.LatLng(-34.397, 150.644);
+		  var mapOptions = {
+		    center: myLatLng,
+		    zoom: 8,
+		    maxZoom: 10,
+		    streetViewControl: false
+		  };
+
+		  // Create the base Google Map.
+		  var map = new google.maps.Map(
+		      document.getElementById('map'), mapOptions);
+
+		  // Add the EE layer to the map.
+		  map.overlayMapTypes.push(mapType);
+
+		  }
+
+        var mapOptions = {
+          center: { lat: -34.397, lng: 150.644},
+          zoom: 8
+        };
+        var map = new google.maps.Map(document.getElementById('map-canvas'),
+            mapOptions);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    {{ body_content }}
+    <div id="map-canvas"></div>
+  </body>
+</html>
+{% endautoescape %}

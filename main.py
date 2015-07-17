@@ -1,10 +1,25 @@
-import webapp2
 import json
+import os
+
+import ee
+import webapp2
+import jinja2
+
+import config
+
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write('Hello, World!')
+        template_values = {
+            "page_title": "Hello World Example",
+            "body_content":"Hello, World"}
+        template = JINJA_ENVIRONMENT.get_template('index.html')
+        self.response.write(template.render(template_values))
+
 
 class AJAXFormPage(webapp2.RequestHandler):
     def get(self):
@@ -97,6 +112,15 @@ class AJAXExamplePage(webapp2.RequestHandler):
 
         self.response.write(response)
 
+class GoogleMapPage(webapp2.RequestHandler):
+    def get(self):
+
+        ee.Initialize(config.EE_CREDENTIALS)
+        template_values = {
+            "page_title": "Google Maps Example",
+            "body_content":"Google Map Below"}
+        template = JINJA_ENVIRONMENT.get_template('google_map.html')
+        self.response.write(template.render(template_values))
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -105,4 +129,5 @@ app = webapp2.WSGIApplication([
     ('/AJAXFormJSONPage', AJAXFormJSONPage),
     ('/AJAXPostJSONPage', AJAXPostJSONPage),
     ('/AJAXExamplePage', AJAXExamplePage),
+    ('/GoogleMapPage', GoogleMapPage),
 ], debug=True)
