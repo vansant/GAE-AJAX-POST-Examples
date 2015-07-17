@@ -165,6 +165,12 @@ class EEAJAXExamplePage(webapp2.RequestHandler):
         <head>
             <meta charset="utf-8">
             <title>Demo</title>
+            <style type="text/css">
+                html, body, #map-canvas { height: 500px; margin: 0; padding: 0;}
+            </style>
+            <script type="text/javascript"
+              src="https://maps.googleapis.com/maps/api/js?">
+            </script>
         </head>
         <body>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -192,16 +198,54 @@ class EEAJAXExamplePage(webapp2.RequestHandler):
                         //success:function(data) { alert(data); },
                     })
                     .done(function(data) {
-                        var mapid = data.mapid;
+                        var mapId = data.mapid;
                         var token = data.token;
 
                         // Set mapid and token from AJAX request
                         $("#token").val(token);
-                        $("#mapid").val(mapid);
+                        $("#mapId").val(mapId);
 
                         //console.log(data);
                         //alert( "success" );
                         //alert("button" + mapid, token);
+
+
+
+
+
+        var eeMapOptions = {
+            getTileUrl: function(tile, zoom) {
+              var baseUrl = 'https://earthengine.googleapis.com/map';
+              var url = [baseUrl, mapId, zoom, tile.x, tile.y].join('/');
+              url += '?token=' + token;
+              return url;
+            },
+            tileSize: new google.maps.Size(256, 256)
+          };
+
+          // Create the map type.
+          var mapType = new google.maps.ImageMapType(eeMapOptions);
+
+          var myLatLng = new google.maps.LatLng(-34.397, 150.644);
+          var mapOptions = {
+            center: myLatLng,
+            zoom: 8,
+            maxZoom: 10,
+            streetViewControl: false
+          };
+
+          // Create the base Google Map.
+          var map = new google.maps.Map(
+              document.getElementById('map'), mapOptions);
+
+          // Add the EE layer to the map.
+          map.overlayMapTypes.push(mapType);
+
+
+
+
+
+
                     })
                     .fail(function() {
                         alert( "error" );
@@ -218,9 +262,12 @@ class EEAJAXExamplePage(webapp2.RequestHandler):
                 minimim<input type="text" name="minimim" id="minimum" value="0"></input>
                 maximum<input type="text" name="maximum" id="maximum" value="1000"></input>
                 token<input type="text" name="token" id="token" value="token will update here" readonly></input>
-                mapid<input type="text" name="mapid" id="mapid" value="mapid will update here" readonly></input>
+                mapId<input type="text" name="mapId" id="mapId" value="mapId will update here" readonly></input>
                 <input type="submit" id="form_button"></input>
             </form>
+
+            <!-- The element into which we render the Google Map. -->
+            <div id="map" style="width: 640px; height: 480px;"></div>
         </body>
         </html>
 
