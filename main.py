@@ -112,13 +112,14 @@ class AJAXExamplePage(webapp2.RequestHandler):
 
         self.response.write(response)
 
+
 class GoogleMapPage(webapp2.RequestHandler):
     def get(self):
 
         # Authenticate with Earth Engine
         ee.Initialize(config.EE_CREDENTIALS)
 
-        # Get mapid
+        # Get mapid 
         mapid = ee.Image('srtm90_v4').getMapId({'min': 0, 'max': 1000})
         template_values = {
             "page_title": "Google Maps Example",
@@ -129,6 +130,104 @@ class GoogleMapPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('google_map.html')
         self.response.write(template.render(template_values))
 
+class GetMapId(webapp2.RequestHandler):
+    def post(self):
+        """ Returns a mapid and a token"""
+        # Authenticate with Earth Engine
+        ee.Initialize(config.EE_CREDENTIALS)
+
+        # set response header to JSON
+        self.response.headers['Content-Type'] = 'application/json'  
+
+        image = self.request.get('image')
+        minimum = self.request.get('minimum')
+        maximum = self.request.get('maximum')
+
+
+        mapid = ee.Image(str(image)).getMapId({'min': int(minimum), 'max': int(maximum)})
+        #mapid = ee.Image('srtm90_v4').getMapId({'min': 0, 'max': 1000})
+        # form object to get converted to JSON
+        object_for_JSON = {'mapid': mapid['mapid'],
+                            'token': mapid['token']
+                        }
+        response = json.dumps(object_for_JSON)
+        self.response.write(response)
+
+class EEAJAXExamplePage(webapp2.RequestHandler):
+    def get(self):
+        # set response header to JSON
+        self.response.headers['Content-Type'] = 'text/html'  
+
+        response = """
+
+        <!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Demo</title>
+        </head>
+        <body>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+            <script>
+         
+            $( document ).ready(function() {
+                // When the button is clicked
+                $("#form_button").click(function(event){
+
+                    // Prevent the form from submitting
+                    event.preventDefault();
+                    //alert("clicked the button");
+
+                    // Get the form variables
+                    var image = $("#image").val();
+                    var maximum = $("#maximum").val();
+                    var minimum = $("#minimum").val();
+
+                    // Make the AJAX request
+                    var jqxhr = $.ajax({
+                        url: "/GetMapId",
+                        method: "POST",
+                        data: "image=" + image +"&minimum=" + minimum + "&maximum=" + maximum,
+                        //data: {image:"John", last_name:"Doe"},
+                        //success:function(data) { alert(data); },
+                    })
+                    .done(function(data) {
+                        var mapid = data.mapid;
+                        var token = data.token;
+
+                        // Set mapid and token from AJAX request
+                        $("#token").val(token);
+                        $("#mapid").val(mapid);
+
+                        //console.log(data);
+                        //alert( "success" );
+                        //alert("button" + mapid, token);
+                    })
+                    .fail(function() {
+                        alert( "error" );
+                    })
+
+
+                }); //End form button click
+
+            }); // End document ready
+         
+            </script>
+            <form>
+                image<input type="text" name="image" id="image" value="srtm90_v4"></input>
+                minimim<input type="text" name="minimim" id="minimum" value="0"></input>
+                maximum<input type="text" name="maximum" id="maximum" value="1000"></input>
+                token<input type="text" name="token" id="token" value="token will update here" readonly></input>
+                mapid<input type="text" name="mapid" id="mapid" value="mapid will update here" readonly></input>
+                <input type="submit" id="form_button"></input>
+            </form>
+        </body>
+        </html>
+
+        """
+
+        self.response.write(response)
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/AJAXFormPage', AJAXFormPage),
@@ -137,4 +236,6 @@ app = webapp2.WSGIApplication([
     ('/AJAXPostJSONPage', AJAXPostJSONPage),
     ('/AJAXExamplePage', AJAXExamplePage),
     ('/GoogleMapPage', GoogleMapPage),
+    ('/GetMapId', GetMapId),
+    ('/EEAJAXExamplePage', EEAJAXExamplePage),
 ], debug=True)
