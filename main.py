@@ -153,6 +153,33 @@ class GetMapId(webapp2.RequestHandler):
         response = json.dumps(object_for_JSON)
         self.response.write(response)
 
+class GetPixelData(webapp2.RequestHandler):
+    def post(self):
+        """ Returns a mapid and a token"""
+        # Authenticate with Earth Engine
+        ee.Initialize(config.EE_CREDENTIALS)
+
+        # set response header to JSON
+        self.response.headers['Content-Type'] = 'text/html'  
+
+        image = self.request.get('image')
+        minimum = self.request.get('minimum')
+        maximum = self.request.get('maximum')
+        latitude = self.request.get('latitude')
+        longitude = self.request.get('longitude')
+
+        print "lat", latitude
+        print "lon", longitude
+
+        pointGeometry = ee.Geometry.Point(float(longitude), float(latitude))
+
+        #pixel_info = float(ee.Image(image).getRegion(pointGeometry,1).getInfo()[1][4])
+
+        image = ee.Image(str(image))
+        pixel_data = image.reduceRegion(ee.Reducer.first(),pointGeometry,1).getInfo()
+        self.response.write(pixel_data)
+
+
 class EEAJAXExamplePage(webapp2.RequestHandler):
     def get(self):
         # set response header to JSON
@@ -242,14 +269,49 @@ class EEAJAXExamplePage(webapp2.RequestHandler):
           map.overlayMapTypes.push(mapType);
 
 
+          google.maps.event.addListener(map, 'click', function(event) {
+              //map.setZoom(8);
+              //map.setCenter(marker.getPosition());
+              //alert(event.latLng);
+              var latitude = event.latLng.lat();
+              var longitude = event.latLng.lng();
+              //alert(latitude);
 
 
-
-
+                // Make the AJAX request when clicking on Google Map
+                    var jqxhr = $.ajax({
+                        url: "/GetPixelData",
+                        method: "POST",
+                        data: "image=" + image +"&minimum=" + minimum + "&maximum=" + maximum + "&latitude=" + latitude + "&longitude=" + longitude,
+                        //success:function(data) { alert(data); },
                     })
+                    .done(function(data) {
+                        //var mapId = data.mapid;
+                        //var token = data.token;
+
+                        // Set mapid and token from AJAX request
+                        //$("#token").val(token);
+                        //$("#mapId").val(mapId);
+
+                        //console.log(data);
+                        //alert( data );
+                        //alert("button" + mapid, token);
+                        $("#pixel_data").text(data);
+
+                        })
+                    .fail(function(){
+                        alert('fails');
+                    })
+
+
+          });
+
+
+
+                    }) // End Success AJAX from Button Call
                     .fail(function() {
                         alert( "error" );
-                    })
+                    }) // End Error from AJAX button Call
 
 
                 }); //End form button click
@@ -268,6 +330,8 @@ class EEAJAXExamplePage(webapp2.RequestHandler):
 
             <!-- The element into which we render the Google Map. -->
             <div id="map" style="width: 640px; height: 480px;"></div>
+            <div>Pixel data updates below on map click:</div>
+            <div id="pixel_data"></div>
         </body>
         </html>
 
@@ -284,5 +348,6 @@ app = webapp2.WSGIApplication([
     ('/AJAXExamplePage', AJAXExamplePage),
     ('/GoogleMapPage', GoogleMapPage),
     ('/GetMapId', GetMapId),
+    ('/GetPixelData', GetPixelData),
     ('/EEAJAXExamplePage', EEAJAXExamplePage),
 ], debug=True)
