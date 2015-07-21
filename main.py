@@ -7,6 +7,8 @@ import jinja2
 
 import config
 
+import time
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -65,6 +67,8 @@ class AJAXPostJSONPage(webapp2.RequestHandler):
         						},
         					]
         				}
+
+        time.sleep(5)
         response = json.dumps(object_for_JSON)
         self.response.write(response)
 
@@ -82,6 +86,7 @@ class AJAXExamplePage(webapp2.RequestHandler):
 		    <title>Demo</title>
 		</head>
 		<body>
+        <input type="submit" id="cancel_button"></input>
 		    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 		    <script>
 		 
@@ -99,8 +104,15 @@ class AJAXExamplePage(webapp2.RequestHandler):
 				    alert( "success" );
 				  })
 				  .fail(function() {
-				    alert( "error" );
+				    //alert( "error" );
 				  })
+            
+
+                $( "#cancel_button" ).click(function() {
+                    jqxhr.abort()
+                    console.log( "Handler for .click() called. Ignoring AJAX call" );
+                });
+ 
 
 			});
 		 
